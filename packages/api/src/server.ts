@@ -1,11 +1,14 @@
+import 'dotenv/config'
 import Fastify from 'fastify'
-import { db } from './lib/db'
+import { eventsRoutes } from './modules/events/events.routes'
 
 const app = Fastify({ logger: true })
 
 app.get('/health', async () => {
   return { status: 'ok', app: 'farra-api' }
 })
+
+app.register(eventsRoutes, { prefix: '/api' })
 
 const start = async () => {
   try {
