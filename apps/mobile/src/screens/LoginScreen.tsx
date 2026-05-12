@@ -2,7 +2,12 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'rea
 import { useState } from 'react'
 import { useFonts, Syne_800ExtraBold, Syne_700Bold, Syne_400Regular } from '@expo-google-fonts/syne'
 import { colors } from '../theme/colors'
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons'
+import * as WebBrowser from 'expo-web-browser'
+import { makeRedirectUri } from 'expo-auth-session'
+import { supabase } from '../lib/supabase'
+
+WebBrowser.maybeCompleteAuthSession()
 
 export default function LoginScreen() {
     const [loading, setLoading] = useState(false)
@@ -16,13 +21,41 @@ export default function LoginScreen() {
     if (!fontsLoaded) return null
 
     async function handleGoogleLogin() {
-        setLoading(true)
-        setLoading(false)
+        try {
+            setLoading(true)
+            const redirectUrl = makeRedirectUri({ scheme: 'farra' })
+
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: redirectUrl,
+                    skipBrowserRedirect: true,
+                },
+            })
+
+            if (error) throw error
+
+            const result = await WebBrowser.openAuthSessionAsync(
+                data.url,
+                redirectUrl
+            )
+
+            if (result.type === 'success') {
+                const url = new URL(result.url)
+                const code = url.searchParams.get('code')
+                if (code) {
+                    await supabase.auth.exchangeCodeForSession(code)
+                }
+            }
+        } catch (e) {
+            console.error(e)
+        } finally {
+            setLoading(false)
+        }
     }
 
     async function handleAppleLogin() {
-        setLoading(true)
-        setLoading(false)
+        // fase 2
     }
 
     return (
@@ -48,7 +81,7 @@ export default function LoginScreen() {
                     disabled={loading}
                     activeOpacity={0.7}
                 >
-                    <FontAwesome name="google" size={20} color="#DB4437" />          
+                    <FontAwesome name="google" size={20} color="#DB4437" />
                     <Text style={styles.googleButtonText}>Entrar com Google</Text>
                 </TouchableOpacity>
 
@@ -58,17 +91,16 @@ export default function LoginScreen() {
                     disabled={loading}
                     activeOpacity={0.7}
                 >
-                    <FontAwesome name="apple" size={20} color="#DB4437" />          
+                    <FontAwesome name="apple" size={20} color={colors.text.primary} />
                     <Text style={styles.appleButtonText}>Entrar com Apple</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={styles.emailButton}
-                    onPress={handleAppleLogin}
                     disabled={loading}
                     activeOpacity={0.7}
                 >
-                    <FontAwesome name="at" size={18} color="#0a0a0a" />          
+                    <FontAwesome name="at" size={18} color="#0a0a0a" />
                     <Text style={styles.emailButtonText}>Continuar com e-mail</Text>
                 </TouchableOpacity>
 
@@ -135,8 +167,6 @@ const styles = StyleSheet.create({
         gap: 10,
         marginBottom: 32,
     },
-
-    // Google — card escuro, destaque sutil
     googleButton: {
         backgroundColor: colors.bg.card,
         borderRadius: 16,
@@ -160,8 +190,6 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: colors.text.primary,
     },
-
-    // Apple — accent vermelho, botão principal
     appleButton: {
         backgroundColor: colors.bg.card,
         borderRadius: 16,
@@ -182,7 +210,6 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: colors.text.primary,
     },
-
     emailButton: {
         backgroundColor: colors.accent.default,
         borderRadius: 16,
@@ -199,7 +226,6 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: colors.text.primary,
     },
-
     terms: {
         fontFamily: 'Syne_400Regular',
         fontSize: 11,
