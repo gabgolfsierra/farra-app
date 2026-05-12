@@ -1,19 +1,23 @@
 {
   "name": "@farra/api",
   "version": "0.1.0",
+  "private": true,
+  "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@supabase/supabase-js": "latest",
-    "fastify": "latest",
-    "zod": "latest",
-    "dotenv": "latest"
+    "@supabase/supabase-js": "^2.105.4",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.8.5",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "tsx": "latest",
-    "typescript": "latest",
-    "@types/node": "latest"
+    "@types/node": "^22.15.3",
+    "tsx": "^4.21.0",
+    "typescript": "5.9.2"
   }
 }

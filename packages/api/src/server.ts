@@ -1,4 +1,7 @@
-import 'dotenv/config'
+import path from 'path'
+import dotenv from 'dotenv'
+dotenv.config({ path: path.join(__dirname, '..', '.env') })
+
 import Fastify from 'fastify'
 import { eventsRoutes } from './modules/events/events.routes'
 

@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 let _db: SupabaseClient | null = null
